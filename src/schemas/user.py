@@ -1,17 +1,20 @@
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
 from typing import Optional
 
-# User Schemas
 class UserBase(BaseModel):
     email: EmailStr
-    otp: Optional[str] = None
 
 class UserCreate(UserBase):
     pass
 
-class UserUpdate(UserBase):
+class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    
+    otp: str
+
 class UserResponse(UserBase):
     id: int
+    email: Optional[EmailStr] = None
+    otp: Optional[str] = None
+    
+    class ConfigDict:
+        from_attributes = True

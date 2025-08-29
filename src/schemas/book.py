@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional,List
 
 # Book Schemas
 class BookBase(BaseModel):
@@ -19,3 +19,21 @@ class BookUpdate(BaseModel):
 
 class BookResponse(BookBase):
     id: int
+    
+    class ConfigDict:
+        from_attributes = True
+    
+class PaginationInfo(BaseModel):
+    page: int
+    limit: int
+    total_items: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedBookResponse(BaseModel):
+    data: List[BookResponse]
+    pagination: PaginationInfo
+
+    class ConfigDict:
+        from_attributes = True

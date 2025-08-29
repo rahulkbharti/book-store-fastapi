@@ -1,59 +1,108 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-
-
-from src.database.db import get_db
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Request, HTTPException, status , Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete, update, func
+from typing import List
+from src.database.database import get_async_db
 from src.models.book import Book
-from src.schemas.book import BookResponse , BookCreate, BookUpdate
+from src.schemas.book import BookResponse, BookCreate, BookUpdate, PaginatedBookResponse,PaginationInfo
 from src.middlewares.auth import protected_route
+from math import ceil
 
-router = APIRouter(tags=["books"])
+router = APIRouter()
 
 
-@router.get("/", response_model=list[BookResponse])
-def get_books( db: Session = Depends(get_db)):
-    books = db.query(Book).all()
-    return books
+@router.get("/", response_model=PaginatedBookResponse, status_code=status.HTTP_200_OK)
+async def get_books(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_async_db)
+):
+    offset = (page - 1) * limit
+    
+    result = await db.execute(
+        select(Book)
+        .order_by(Book.id)
+        .offset(offset)
+        .limit(limit)
+    )
+    books = result.scalars().all()
+    
+    # Convert to Pydantic models
+    book_responses = [BookResponse.model_validate(book) for book in books]
+    
+    count_result = await db.execute(select(func.count(Book.id)))
+    total_books = count_result.scalar_one()
+    total_pages = (total_books + limit - 1) // limit if total_books > 0 else 1
+    
+    return PaginatedBookResponse(
+        data=book_responses,
+        pagination=PaginationInfo(
+            page=page,
+            limit=limit,
+            total_items=total_books,
+            total_pages=total_pages,
+            has_next=page < total_pages,
+            has_prev=page > 1
+        )
+    )
 
-@router.get("/{book_id}", response_model=BookResponse)
-def get_book( book_id: int, db: Session = Depends(get_db)):
-    book = db.query(Book).filter(Book.id == book_id).first()
+@router.get("/{book_id}", response_model=BookResponse, status_code=status.HTTP_200_OK)
+async def get_book(book_id: int, db: AsyncSession = Depends(get_async_db)):
+    result = await db.execute(select(Book).where(Book.id == book_id))
+    book = result.scalar_one_or_none()
+    
     if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found"
+        )
     return book
 
-@router.post("/", response_model=BookResponse)
+@router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 @protected_route
-def create_book(request: Request, book: BookCreate, db: Session = Depends(get_db)):
+async def create_book(request: Request, book: BookCreate, db: AsyncSession = Depends(get_async_db)):
     db_book = Book(**book.model_dump())
     db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
+    await db.commit()
+    await db.refresh(db_book)
     return db_book
 
-
-@router.put("/{book_id}", response_model=BookResponse)
+@router.put("/{book_id}", response_model=BookResponse, status_code=status.HTTP_200_OK)
 @protected_route
-def update_book(request: Request, book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
-    db_book = db.query(Book).filter(Book.id == book_id).first()
+async def update_book(request: Request, book_id: int, book: BookUpdate, db: AsyncSession = Depends(get_async_db)):
+    # Get the book first
+    result = await db.execute(select(Book).where(Book.id == book_id))
+    db_book = result.scalar_one_or_none()
+    
     if not db_book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found"
+        )
     
     # Exclude None values (fields that weren't provided)
     update_data = book.model_dump(exclude_none=True)
+    
     for key, value in update_data.items():
         setattr(db_book, key, value)
     
-    db.commit()
-    db.refresh(db_book)
+    await db.commit()
+    await db.refresh(db_book)
     return db_book
 
-@router.delete("/{book_id}", response_model=dict)
+@router.delete("/{book_id}", response_model=dict, status_code=status.HTTP_200_OK)
 @protected_route
-def delete_book(request: Request, book_id: int, db: Session = Depends(get_db)):
-    db_book = db.query(Book).filter(Book.id == book_id).first()
+async def delete_book(request: Request, book_id: int, db: AsyncSession = Depends(get_async_db)):
+    # Get the book first
+    result = await db.execute(select(Book).where(Book.id == book_id))
+    db_book = result.scalar_one_or_none()
+    
     if not db_book:
-        raise HTTPException(status_code=404, detail="Book not found")
-    db.delete(db_book)
-    db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found"
+        )
+    
+    await db.delete(db_book)
+    await db.commit()
     return {"message": "Book deleted successfully"}

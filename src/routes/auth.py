@@ -1,56 +1,101 @@
-from fastapi import APIRouter, Depends, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Request, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from src.utils.jwt import create_access_token, create_refresh_token, decode_token
-from src.database.db import get_db
+from src.database.database import get_async_db
 from src.models.user import User
 from src.schemas.user import UserCreate, UserResponse
 from src.schemas.auth import Auth, OTPVerify
 
-router = APIRouter(tags=["auth"])
+router = APIRouter()
 
-@router.post("/register", response_model=UserResponse)
-def register(user: UserCreate, db: Session = Depends(get_db)):
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register(user: UserCreate, db: AsyncSession = Depends(get_async_db)):
+    # Check if user already exists
+    result = await db.execute(select(User).where(User.email == user.email))
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
     db_user = User(**user.model_dump())
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    await db.commit()
+    await db.refresh(db_user)
     return db_user
 
-
-@router.post("/request-otp",response_model=dict)
-def request_otp(auth:Auth = None, db :Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == auth.email).first()
-    print(auth.email)
+@router.post("/request-otp", response_model=dict,status_code=status.HTTP_200_OK)
+async def request_otp(auth: Auth, db: AsyncSession = Depends(get_async_db)):
+    result = await db.execute(select(User).where(User.email == auth.email))
+    user = result.scalar_one_or_none()
+    
     if not user:
-        return {"message": "Email not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email not found"
+        )
     
     user.otp = "123456"
-    db.commit()
+    await db.commit()
     return {"message": "OTP Sent Successfully"}
 
-@router.post("/verify-otp",response_model=dict)
-def verify_otp(auth: OTPVerify, db :Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == auth.email).first()
+@router.post("/verify-otp", response_model=dict,status_code=status.HTTP_200_OK)
+async def verify_otp(auth: OTPVerify, db: AsyncSession = Depends(get_async_db)):
+    result = await db.execute(select(User).where(User.email == auth.email))
+    user = result.scalar_one_or_none()
+    
     if not user:
-        return {"message": "Email not found"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email not found"
+        )
+    
     if user.otp != auth.otp:
-        return {"message": "Invalid OTP"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid OTP"
+        )
     
     user.otp = None
-    db.commit()
-    access_token= create_access_token({"email": auth.email})
+    await db.commit()
+    
+    access_token = create_access_token({"email": auth.email})
     refresh_token = create_refresh_token({"email": auth.email})
-    return {"message": "OTP verified successfully", "access_token": access_token, "refresh_token": refresh_token}
+    
+    return {
+        "message": "OTP verified successfully", 
+        "access_token": access_token, 
+        "refresh_token": refresh_token
+    }
 
-
-@router.post("/refresh-token", response_model=dict)
-def refresh_token(request : Request):
+@router.post("/refresh-token", response_model=dict,status_code=status.HTTP_200_OK)
+async def refresh_token(request: Request):
     auth_header = request.headers.get("Authorization")
-    print(auth_header.split(" ")[1])
-    data,status = decode_token(auth_header.split(" ")[1])
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header"
+        )
+    
+    token = auth_header.split(" ")[1]
+    data, status_code = decode_token(token)
+    
+    if status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token"
+        )
+    
     email = data.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
     access_token = create_access_token({"email": email})
     return {"message": "Token refreshed", "access_token": access_token}
-
-
