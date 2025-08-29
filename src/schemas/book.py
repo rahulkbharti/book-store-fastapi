@@ -19,8 +19,8 @@ class BookUpdate(BaseModel):
 
 class BookResponse(BookBase):
     id: int
-    
-    class ConfigDict:
+
+    class Config:
         from_attributes = True
     
 class PaginationInfo(BaseModel):
@@ -35,5 +35,5 @@ class PaginatedBookResponse(BaseModel):
     data: List[BookResponse]
     pagination: PaginationInfo
 
-    class ConfigDict:
+    class Config:
         from_attributes = True

@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status , Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, update, func
-from typing import List
+from sqlalchemy import select, func
+
 from src.database.database import get_async_db
 from src.models.book import Book
 from src.schemas.book import BookResponse, BookCreate, BookUpdate, PaginatedBookResponse,PaginationInfo
 from src.middlewares.auth import protected_route
-from math import ceil
+
+from typing import Optional
 
 router = APIRouter()
 
@@ -15,23 +16,37 @@ router = APIRouter()
 async def get_books(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
+    author: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_async_db)
 ):
+    """
+    Get paginated list of books with optional author filter (partial match).
+    """
     offset = (page - 1) * limit
+
+    # Build base query
+    base_query = select(Book).order_by(Book.id)
+    count_query = select(func.count(Book.id))
     
-    result = await db.execute(
-        select(Book)
-        .order_by(Book.id)
-        .offset(offset)
-        .limit(limit)
-    )
+    # Apply author filter if provided - partial match using ilike
+    if author:
+        author_filter = f"%{author}%"
+        base_query = base_query.where(Book.author.ilike(author_filter))
+        count_query = count_query.where(Book.author.ilike(author_filter))
+
+    # Execute paginated query
+    paginated_query = base_query.offset(offset).limit(limit)
+    result = await db.execute(paginated_query)
     books = result.scalars().all()
     
     # Convert to Pydantic models
     book_responses = [BookResponse.model_validate(book) for book in books]
     
-    count_result = await db.execute(select(func.count(Book.id)))
+    # Get total count
+    count_result = await db.execute(count_query)
     total_books = count_result.scalar_one()
+    
+    # Calculate pagination info
     total_pages = (total_books + limit - 1) // limit if total_books > 0 else 1
     
     return PaginatedBookResponse(
@@ -45,7 +60,6 @@ async def get_books(
             has_prev=page > 1
         )
     )
-
 @router.get("/{book_id}", response_model=BookResponse, status_code=status.HTTP_200_OK)
 async def get_book(book_id: int, db: AsyncSession = Depends(get_async_db)):
     result = await db.execute(select(Book).where(Book.id == book_id))

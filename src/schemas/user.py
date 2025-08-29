@@ -16,5 +16,5 @@ class UserResponse(UserBase):
     email: Optional[EmailStr] = None
     otp: Optional[str] = None
     
-    class ConfigDict:
+    class Config:
         from_attributes = True

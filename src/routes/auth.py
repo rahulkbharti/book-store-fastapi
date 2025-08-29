@@ -1,14 +1,21 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from datetime import datetime, timedelta, timezone
 
 from src.utils.jwt import create_access_token, create_refresh_token, decode_token
 from src.database.database import get_async_db
 from src.models.user import User
 from src.schemas.user import UserCreate, UserResponse
 from src.schemas.auth import Auth, OTPVerify
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+OTP_EXPIRE_MINUTES = int(os.getenv("OTP_EXPIRE_MINUTES", 10))
 
 router = APIRouter()
+otpStore = {}
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate, db: AsyncSession = Depends(get_async_db)):
@@ -41,6 +48,8 @@ async def request_otp(auth: Auth, db: AsyncSession = Depends(get_async_db)):
     
     user.otp = "123456"
     await db.commit()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    otpStore[auth.email] = {"otp":"123456","exp":expire}
     return {"message": "OTP Sent Successfully"}
 
 @router.post("/verify-otp", response_model=dict,status_code=status.HTTP_200_OK)
@@ -54,7 +63,13 @@ async def verify_otp(auth: OTPVerify, db: AsyncSession = Depends(get_async_db)):
             detail="Email not found"
         )
     
-    if user.otp != auth.otp:
+    if otpStore[auth.email]["exp"] < datetime.now(timezone.utc):
+        del otpStore[auth.email]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP Expired"
+        )
+    if otpStore[auth.email]["otp"] != auth.otp:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid OTP"
@@ -63,13 +78,14 @@ async def verify_otp(auth: OTPVerify, db: AsyncSession = Depends(get_async_db)):
     user.otp = None
     await db.commit()
     
-    access_token = create_access_token({"email": auth.email})
-    refresh_token = create_refresh_token({"email": auth.email})
+    access_token,expire = create_access_token({"email": auth.email})
+    refresh_token,_ = create_refresh_token({"email": auth.email})
     
     return {
-        "message": "OTP verified successfully", 
+        "email": auth.email, 
         "access_token": access_token, 
-        "refresh_token": refresh_token
+        "refresh_token": refresh_token,
+        "exp": expire
     }
 
 @router.post("/refresh-token", response_model=dict,status_code=status.HTTP_200_OK)
