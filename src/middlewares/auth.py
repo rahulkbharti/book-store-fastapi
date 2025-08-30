@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException, status
 from functools import wraps
-from src.utils.jwt import decode_token
+from src.utils.jwt import decode_token_access_token
 from typing import Callable, Any
 
 def protected_route(func: Callable) -> Callable:
@@ -23,7 +23,7 @@ def protected_route(func: Callable) -> Callable:
             )
         
         token = auth_header.split(" ")[1]
-        data, status_code = decode_token(token)
+        data, status_code = decode_token_access_token(token)
         
         if status_code != 200:
             raise HTTPException(

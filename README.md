@@ -1,6 +1,6 @@
 # BookStore
 
-A simple Book Store API with otp verification login 
+A simple Book Store API with otp verification login
 
 # Getting Started
 
@@ -20,6 +20,7 @@ A simple Book Store API with otp verification login
    # Make Sure You have .env in root folder and replace with your own database config
    DATABASE_URL=postgresql+asyncpg://<username>:<password>@<host>:<port>/<database_name>
    SECRET_KEY=<your_secret_key> # for jwt
+
    ```
 
 3. **Install dependencies:**
@@ -48,4 +49,3 @@ A simple Book Store API with otp verification login
 - [SQLAlchemy](https://www.sqlalchemy.org/)
 - [YouTube Video - Nitish Shingh](https://youtu.be/WJKsPchji0Q?si=Bnfa1468DdYVknB8)
 - [YouTube Video - freeCodeCamp.org](https://www.youtube.com/watch?v=tLKKmouUams)
-

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timedelta, timezone
 
-from src.utils.jwt import create_access_token, create_refresh_token, decode_token
+from src.utils.jwt import create_access_token, create_refresh_token, decode_token_access_token, decode_token_refresh_token
 from src.database.database import get_async_db
 from src.models.user import User
 from src.schemas.user import UserCreate, UserResponse
@@ -98,8 +98,8 @@ async def refresh_token(request: Request):
         )
     
     token = auth_header.split(" ")[1]
-    data, status_code = decode_token(token)
-    
+    data, status_code = decode_token_refresh_token(token)
+
     if status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -113,5 +113,5 @@ async def refresh_token(request: Request):
             detail="Invalid token payload"
         )
     
-    access_token = create_access_token({"email": email})
-    return {"message": "Token refreshed", "access_token": access_token}
+    access_token,expire = create_access_token({"email": email})
+    return {"message": "Token refreshed", "access_token": access_token, "exp": expire}
