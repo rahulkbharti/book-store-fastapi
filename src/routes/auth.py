@@ -90,7 +90,6 @@ async def verify_otp(auth: OTPVerify, db: AsyncSession = Depends(get_async_db)):
 
 @router.post("/refresh-token", response_model=dict,status_code=status.HTTP_200_OK)
 async def refresh_token(token: RefreshToken):
-    print("Getting Refresh Token:", token.refresh_token)
     data, status_code = decode_token_refresh_token(token.refresh_token)
 
     if status_code != 200:

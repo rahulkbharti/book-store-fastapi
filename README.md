@@ -8,7 +8,7 @@ A simple Book Store API with otp verification login
 
    ```bash
    git clone https://github.com/rahulkbharti/book-store-fastapi.git
-   cd BookStore
+   cd book-store-fastapi
    ```
 
 2. **Create and activate a virtual environment:**
