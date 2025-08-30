@@ -60,7 +60,6 @@ async def get_books(
             has_prev=page > 1
         )
     )
-
 @router.get("/{book_id}", response_model=BookResponse, status_code=status.HTTP_200_OK)
 async def get_book(book_id: int, db: AsyncSession = Depends(get_async_db)):
     result = await db.execute(select(Book).where(Book.id == book_id))

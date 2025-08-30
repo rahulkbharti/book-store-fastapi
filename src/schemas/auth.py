@@ -6,3 +6,6 @@ class Auth(BaseModel):
 class OTPVerify(BaseModel):
     email : EmailStr
     otp : str
+
+class RefreshToken(BaseModel):
+    refresh_token: str

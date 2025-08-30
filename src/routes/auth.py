@@ -7,7 +7,7 @@ from src.utils.jwt import create_access_token, create_refresh_token, decode_toke
 from src.database.database import get_async_db
 from src.models.user import User
 from src.schemas.user import UserCreate, UserResponse
-from src.schemas.auth import Auth, OTPVerify
+from src.schemas.auth import Auth, OTPVerify, RefreshToken
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -89,16 +89,9 @@ async def verify_otp(auth: OTPVerify, db: AsyncSession = Depends(get_async_db)):
     }
 
 @router.post("/refresh-token", response_model=dict,status_code=status.HTTP_200_OK)
-async def refresh_token(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header"
-        )
-    
-    token = auth_header.split(" ")[1]
-    data, status_code = decode_token_refresh_token(token)
+async def refresh_token(token: RefreshToken):
+    print("Getting Refresh Token:", token.refresh_token)
+    data, status_code = decode_token_refresh_token(token.refresh_token)
 
     if status_code != 200:
         raise HTTPException(
