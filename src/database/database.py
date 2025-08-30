@@ -37,3 +37,8 @@ async def get_async_db():
             yield session
         finally:
             await session.close()
+
+# Automatically create all tables in database
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

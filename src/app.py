@@ -1,14 +1,22 @@
-from fastapi import FastAPI , Depends
+from fastapi import FastAPI
 from src.routes import book, user, auth
-# from src.database.database import engine
-from src.database.database import get_async_db
+from src.database.database import engine, init_models
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_models()
+    print("App starting...")
+    yield
+    await engine.dispose()
+    print("App shutting down...")
 
 app = FastAPI(
     title="Book Store API",
     description="API for managing a book store",
     version="1.0.0",
-    dependencies=[Depends(get_async_db)]
+    lifespan=lifespan
 )
 
 app.add_middleware(

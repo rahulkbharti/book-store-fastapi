@@ -1,0 +1,437 @@
+{
+	"info": {
+		"_postman_id": "143be070-1646-4697-b5ab-205f4b44af4e",
+		"name": "BookStore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "30768973"
+	},
+	"item": [
+		{
+			"name": "books",
+			"item": [
+				{
+					"name": "Get Books",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/books?page=1&limit=2&author=Kumar",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"books"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "author",
+									"value": "Kumar"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Books {Id}",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base}}/books/5"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Book {id}",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Get the access token from environment variables\r",
+									"const accessToken = pm.environment.get(\"access_token\");\r",
+									"\r",
+									"// Set the Authorization header\r",
+									"pm.request.headers.upsert({\r",
+									"    key: \"Authorization\",\r",
+									"    value: `Bearer ${accessToken}`\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\":\"Physics\",\r\n    \"author\":\"Kumar Mittal\"\r\n}"
+						},
+						"url": "{{base}}/books/3"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Book",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Get the access token from environment variables\r",
+									"const accessToken = pm.environment.get(\"access_token\");\r",
+									"\r",
+									"// Set the Authorization header\r",
+									"pm.request.headers.upsert({\r",
+									"    key: \"Authorization\",\r",
+									"    value: `Bearer ${accessToken}`\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Physics\",\r\n    \"author\": \"Kumar Mittal\",\r\n    \"published_year\": 2015,\r\n    \"price\": 800\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/books"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Book {id}",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Get the access token from environment variables\r",
+									"const accessToken = pm.environment.get(\"access_token\");\r",
+									"\r",
+									"// Set the Authorization header\r",
+									"pm.request.headers.upsert({\r",
+									"    key: \"Authorization\",\r",
+									"    value: `Bearer ${accessToken}`\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Mathematics\",\r\n    \"author\": \"Kumar Mittal\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/books/6"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"rk2255psssssasass5@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/auth/register/"
+					},
+					"response": []
+				},
+				{
+					"name": "Request OTP",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"rk2255p@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/auth/request-otp"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if login was successful\r",
+									"if (pm.response.code === 200) {\r",
+									"    const response = pm.response.json();\r",
+									"    \r",
+									"    // Save tokens as environment variables\r",
+									"    pm.environment.set(\"access_token\", response.access_token);\r",
+									"    pm.environment.set(\"refresh_token\", response.refresh_token);\r",
+									"    \r",
+									"    // Calculate expiration time if needed\r",
+									"    const expiresIn = response.expiresIn || 3600;\r",
+									"    const expiresAt = new Date();\r",
+									"    expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);\r",
+									"    pm.environment.set(\"token_expires_at\", expiresAt.toISOString());\r",
+									"    \r",
+									"    // Success message\r",
+									"    console.log(\"Tokens saved successfully\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"rk2255p@gmail.com\",\r\n    \"otp\":\"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/auth/verify-otp"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Get the access token from environment variables\r",
+									"const accessToken = pm.environment.get(\"access_token\");\r",
+									"\r",
+									"// Set the Authorization header\r",
+									"pm.request.headers.upsert({\r",
+									"    key: \"Authorization\",\r",
+									"    value: `Bearer ${accessToken}`\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if login was successful\r",
+									"if (pm.response.code === 200) {\r",
+									"    const response = pm.response.json();\r",
+									"    \r",
+									"    // Save tokens as environment variables\r",
+									"    pm.environment.set(\"access_token\", response.access_token);\r",
+									"    \r",
+									"    // Calculate expiration time if needed\r",
+									"    const expiresIn = response.expiresIn || 3600;\r",
+									"    const expiresAt = new Date();\r",
+									"    expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);\r",
+									"    pm.environment.set(\"token_expires_at\", expiresAt.toISOString());\r",
+									"    \r",
+									"    // Success message\r",
+									"    console.log(\"Tokens saved successfully\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/auth/refresh-token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "Get Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\":\"Physics\",\r\n    \"author\":\"Kumar Mittal\"\r\n}"
+						},
+						"url": "{{base}}/users"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User {id}",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\":\"Physics\",\r\n    \"author\":\"Kumar Mittal\"\r\n}"
+						},
+						"url": "{{base}}/users/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"r1e2@org.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/users"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User {id}",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"otp\":\"1234564\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/users/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User {id}",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"otp\":\"1234564\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base}}/users/5"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -2,24 +2,12 @@
 
 A simple Book Store application for managing books, authors, and orders.
 
-## Features
-
-- Add, update, and delete books
-- Manage authors and categories
-- Search and filter books
-- Place and track orders
-
-## Technologies Used
-
-- FastAPI (Python)
-- [Add other technologies if used, e.g., SQLAlchemy, PostgreSQL, etc.]
-
-## Getting Started
+# Getting Started
 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/BookStore.git
+   git clone https://github.com/rahulkbharti/book-store-fastapi.git
    cd BookStore
    ```
 
@@ -28,6 +16,10 @@ A simple Book Store application for managing books, authors, and orders.
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+   # Make Sure You have .env in root folder and replace with your own database config
+   DATABASE_URL=postgresql+asyncpg://<username>:<password>@<host>:<port>/<database_name>
+   SECRET_KEY=<your_secret_key> # for jwt
    ```
 
 3. **Install dependencies:**
@@ -39,34 +31,13 @@ A simple Book Store application for managing books, authors, and orders.
 4. **Start the FastAPI application:**
 
    ```bash
-   uvicorn main:app --reload
+   py run.py
    ```
 
 5. **Open in browser:**
    ```
    http://localhost:8000
    ```
-   - API docs available at: `http://localhost:8000/docs`
 
-## Folder Structure
-
-```
-/BookStore
-  /app
-     /routers
-     /models
-     /schemas
-     /services
-  /tests
-  README.md
-  requirements.txt
-  main.py
-```
-
-## Contributing
-
-Contributions are welcome! Please open issues or submit pull requests.
-
-## License
-
-[MIT](LICENSE)
+- API docs available at: `http://localhost:8000/docs`
+- API collection and environment variable setup can be found in the Postman folder.
