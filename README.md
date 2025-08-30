@@ -1,6 +1,6 @@
 # BookStore
 
-A simple Book Store application for managing books, authors, and orders.
+A simple Book Store API with otp verification login 
 
 # Getting Started
 
