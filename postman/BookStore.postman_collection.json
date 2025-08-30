@@ -15,7 +15,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base}}/books?page=1&limit=2&author=Kumar",
+							"raw": "{{base}}/books?author=Kumar&limit=3&page=1",
 							"host": [
 								"{{base}}"
 							],
@@ -24,16 +24,16 @@
 							],
 							"query": [
 								{
-									"key": "page",
-									"value": "1"
+									"key": "author",
+									"value": "Kumar"
 								},
 								{
 									"key": "limit",
-									"value": "2"
+									"value": "3"
 								},
 								{
-									"key": "author",
-									"value": "Kumar"
+									"key": "page",
+									"value": "1"
 								}
 							]
 						}
@@ -78,9 +78,9 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\":\"Physics\",\r\n    \"author\":\"Kumar Mittal\"\r\n}"
+							"raw": ""
 						},
-						"url": "{{base}}/books/3"
+						"url": "{{base}}/books/1"
 					},
 					"response": []
 				},
@@ -113,7 +113,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Physics\",\r\n    \"author\": \"Kumar Mittal\",\r\n    \"published_year\": 2015,\r\n    \"price\": 800\r\n}",
+							"raw": "{\r\n    \"title\": \"Book #7\",\r\n    \"author\": \"Author #2\",\r\n    \"published_year\": 2015,\r\n    \"price\": 800\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -153,7 +153,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Mathematics\",\r\n    \"author\": \"Kumar Mittal\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Updated Book #5\",\r\n    \"price\":500\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -179,7 +179,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"rk2255psssssasass5@gmail.com\"\r\n}",
+							"raw": "{\r\n    \"email\":\"rk2255p@gmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -227,11 +227,8 @@
 									"    pm.environment.set(\"refresh_token\", response.refresh_token);\r",
 									"    \r",
 									"    // Calculate expiration time if needed\r",
-									"    const expiresIn = response.expiresIn || 3600;\r",
-									"    const expiresAt = new Date();\r",
-									"    expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);\r",
+									"    const expiresAt = new Date(response.exp);\r",
 									"    pm.environment.set(\"token_expires_at\", expiresAt.toISOString());\r",
-									"    \r",
 									"    // Success message\r",
 									"    console.log(\"Tokens saved successfully\");\r",
 									"}"
@@ -268,7 +265,7 @@
 							"script": {
 								"exec": [
 									"// Get the access token from environment variables\r",
-									"const accessToken = pm.environment.get(\"access_token\");\r",
+									"const accessToken = pm.environment.get(\"refresh_token\");\r",
 									"\r",
 									"// Set the Authorization header\r",
 									"pm.request.headers.upsert({\r",
@@ -292,9 +289,7 @@
 									"    pm.environment.set(\"access_token\", response.access_token);\r",
 									"    \r",
 									"    // Calculate expiration time if needed\r",
-									"    const expiresIn = response.expiresIn || 3600;\r",
-									"    const expiresAt = new Date();\r",
-									"    expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);\r",
+									"    const expiresAt = new Date(response.exp);\r",
 									"    pm.environment.set(\"token_expires_at\", expiresAt.toISOString());\r",
 									"    \r",
 									"    // Success message\r",
