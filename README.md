@@ -43,9 +43,3 @@ A simple Book Store API with otp verification login
 - API docs available at: `http://localhost:8000/docs`
 - API collection and environment variable setup can be found in the Postman folder.
 
-### References
-
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [SQLAlchemy](https://www.sqlalchemy.org/)
-- [YouTube Video - Nitish Shingh](https://youtu.be/WJKsPchji0Q?si=Bnfa1468DdYVknB8)
-- [YouTube Video - freeCodeCamp.org](https://www.youtube.com/watch?v=tLKKmouUams)
